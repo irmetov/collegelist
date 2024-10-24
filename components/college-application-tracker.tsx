@@ -119,6 +119,7 @@ interface College {
   tuitProgYear: string;
   undegrSize: string;
   zip: string;
+  estNetPrice?: string;
 }
 
 // Update the CollegeApplication interface
@@ -146,13 +147,29 @@ interface CollegeSearchResult {
   name: string;
   city: string;
   state: string;
-  undegrSize: string; // Add this line
+  undegrSize: string;
   admRate: string;
   testPolicy: string;
   essayPolicy: string;
-  control: string; // Add this line
-  commonApp: string; // Add this line
-  gradRate: string; // Add this line
+  control: string;
+  commonApp: string;
+  gradRate: string;
+  // Add these properties
+  satMath25: string;
+  satMath75: string;
+  satRead25: string;
+  satRead75: string;
+  actAvg25: string;
+  actAvg75: string;
+  // Add missing properties
+  retentionRate: string;
+  AvgNetPricPub: string;
+  AvgNetPricePriv: string;
+  estNetPrice: string;
+  supplementalEssays: string;
+  deadlines: string;
+  lor: string;
+  appFee: string;
 }
 
 // Update the loadUserProfile function
@@ -229,6 +246,13 @@ const formatPercentage = (value: string | null | undefined) => {
   return isNaN(num) ? 'N/A' : `${(num * 100).toFixed(1)}%`;
 };
 
+// Add this utility function at the top of your file
+const formatCurrency = (value: string | null | undefined) => {
+  if (value === null || value === undefined || value === '') return 'N/A';
+  const num = parseFloat(value);
+  return isNaN(num) ? 'N/A' : `$${num.toLocaleString()}`;
+};
+
 // Add this helper function at the top of your file
 const getEstimatedNetPrice = (college: CollegeApplication, familyIncome: number): string => {
   const isPublic = college.control === '1';
@@ -268,6 +292,29 @@ const getCommonAppDisplay = (value: string): string => {
   return value === "1" ? "Yes" : value;
 };
 
+// Add this utility function with your other utility functions
+const getTestScoresDisplay = (college: CollegeSearchResult): string => {
+  const satMath25 = parseInt(college.satMath25 || '0');
+  const satMath75 = parseInt(college.satMath75 || '0');
+  const satRead25 = parseInt(college.satRead25 || '0');
+  const satRead75 = parseInt(college.satRead75 || '0');
+  
+  if (satMath25 && satMath75 && satRead25 && satRead75) {
+    const totalSat25 = satMath25 + satRead25;
+    const totalSat75 = satMath75 + satRead75;
+    return `${totalSat25}-${totalSat75}`;
+  }
+
+  const actAvg25 = parseInt(college.actAvg25 || '0');
+  const actAvg75 = parseInt(college.actAvg75 || '0');
+  
+  if (actAvg25 && actAvg75) {
+    return `ACT: ${actAvg25}-${actAvg75}`;
+  }
+
+  return 'N/A';
+};
+
 // Update the TestScoreRange component
 const TestScoreRange: React.FC<{
   min25: number;
@@ -291,7 +338,7 @@ const TestScoreRange: React.FC<{
 
   return (
     <div className="mb-1">
-      <div className="text-xs mb-0.5">{label}</div>
+      <div className="text-sm mb-0.5">{label}</div>
       <div className="relative">
         <div className="h-2 flex">
           <div className="w-1/4 bg-red-400"></div>
@@ -546,6 +593,20 @@ const CollegeApplicationTracker: React.FC = () => {
             control: data.control || '',
             commonApp: data.commonApp || '',
             gradRate: data.gradRate || '',
+            satMath25: data.satMath25 || '',
+            satMath75: data.satMath75 || '',
+            satRead25: data.satRead25 || '',
+            satRead75: data.satRead75 || '',
+            actAvg25: data.actAvg25 || '',
+            actAvg75: data.actAvg75 || '',
+            retentionRate: data.retRate || '',
+            AvgNetPricPub: data.AvgNetPricPub || '',
+            AvgNetPricePriv: data.AvgNetPricePriv || '',
+            estNetPrice: data.estNetPrice || '',
+            supplementalEssays: data.supEssay || '',
+            deadlines: data.rd || '',
+            lor: data.lor || '',
+            appFee: data.fee || '',
           });
         }
       });
@@ -986,7 +1047,7 @@ const CollegeApplicationTracker: React.FC = () => {
       <header className="bg-white shadow-sm">
         <div className="mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <div className="flex items-center">
-            <svg className="h-8 w-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-8 w-8 text-indigo-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
             <span className="ml-2 text-xl font-semibold text-gray-900">CollegeTracker</span>
@@ -1334,16 +1395,36 @@ const CollegeApplicationTracker: React.FC = () => {
             {(searchTerm !== '' || isFilterActive()) && searchResults.length > 0 && (
               <div className="mt-4">
                 <Table>
-                  <TableHeader>
+                  <TableHeader className="bg-slate-200">
                     <TableRow>
-                      <TableHead>College Name</TableHead>
-                      <TableHead className="text-center">Size</TableHead>
-                      <TableHead className="text-center">Admission Rate</TableHead>
-                      <TableHead className="text-center">Graduation Rate</TableHead>
-                      <TableHead className="text-center">Test Policy</TableHead>
-                      <TableHead className="text-center">Essay Policy</TableHead>
-                      <TableHead className="text-center">Common App</TableHead>
-                      <TableHead></TableHead>
+                      {[
+                        { name: "College Name", width: "w-[15%]" },
+                        { name: "Size", width: "w-[5%]" },
+                        { name: "Adm Rate", width: "w-[5%]" },
+                        { name: "Grad Rate", width: "w-[5%]" },
+                        { name: "Reten Rate", width: "w-[5%]" },
+                        { name: "Avg Net Price", width: "w-[7%]" },
+                        { name: "Est Net Price", width: "w-[7%]" },
+                        { name: "Test Scores", width: "w-[12%]" },
+                        { name: "Test Policy", width: "w-[5%]" },
+                        { name: "Essay Policy", width: "w-[5%]" },
+                        { name: "Supplemental Essays", width: "w-[12%]" },
+                        { name: "Deadlines", width: "w-[6%]" },
+                        { name: "Common App", width: "w-[4%]" },
+                        { name: "LOR", width: "w-[3%]" },
+                        { name: "App Fee", width: "w-[3%]" },
+                        { name: "", width: "w-[1%]" }
+                      ].map((header, index) => (
+                        <TableHead 
+                          key={header.name} 
+                          className={cn(
+                            `py-4 ${index === 0 ? 'pl-3 pr-1 text-left' : 'px-1 text-center'} text-sm font-medium`,
+                            header.width
+                          )}
+                        >
+                          {header.name}
+                        </TableHead>
+                      ))}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -1351,21 +1432,29 @@ const CollegeApplicationTracker: React.FC = () => {
                       const isAlreadyAdded = applications.some(app => app.name.toLowerCase() === college.name.toLowerCase());
                       return (
                         <TableRow key={college.name}>
-                          <TableCell>
+                          <TableCell className="py-4 pl-3 pr-1 align-middle [&:has([role=checkbox])]:pr-0 w-[15%]">
                             <div>
                               <span className="font-bold text-indigo-800">{college.name}</span>
-                              <div className="text-xs text-gray-500">
+                              <div className="text-sm text-gray-500">
                                 {`${college.city}, ${college.state} • ${getControlType(college.control)}`}
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell className="text-center">{college.undegrSize}</TableCell>
-                          <TableCell className="text-center">{formatPercentage(college.admRate)}</TableCell>
-                          <TableCell className="text-center">{formatPercentage(college.gradRate)}</TableCell>
-                          <TableCell className="text-center">{getTestPolicyDisplay(college.testPolicy)}</TableCell>
-                          <TableCell className="text-center">{college.essayPolicy}</TableCell>
-                          <TableCell className="text-center">{getCommonAppDisplay(college.commonApp)}</TableCell>
-                          <TableCell className="text-right">
+                          <TableCell className="py-4 px-1 text-center w-[5%]">{college.undegrSize}</TableCell>
+                          <TableCell className="py-4 px-1 text-center w-[5%]">{formatPercentage(college.admRate)}</TableCell>
+                          <TableCell className="py-4 px-1 text-center w-[5%]">{formatPercentage(college.gradRate)}</TableCell>
+                          <TableCell className="py-4 px-1 text-center w-[5%]">{formatPercentage(college.retentionRate)}</TableCell>
+                          <TableCell className="py-4 px-1 text-center w-[7%]">{formatCurrency(college.AvgNetPricPub)}</TableCell>
+                          <TableCell className="py-4 px-1 text-center w-[7%]">{formatCurrency(college.estNetPrice)}</TableCell>
+                          <TableCell className="py-4 px-1 text-center w-[12%]">{getTestScoresDisplay(college)}</TableCell>
+                          <TableCell className="py-4 px-1 text-center w-[5%]">{getTestPolicyDisplay(college.testPolicy)}</TableCell>
+                          <TableCell className="py-4 px-1 text-center w-[5%]">{college.essayPolicy}</TableCell>
+                          <TableCell className="py-4 px-1 text-center w-[12%]">{college.supplementalEssays}</TableCell>
+                          <TableCell className="py-4 px-1 text-center w-[6%]">{college.deadlines}</TableCell>
+                          <TableCell className="py-4 px-1 text-center w-[4%]">{getCommonAppDisplay(college.commonApp)}</TableCell>
+                          <TableCell className="py-4 px-1 text-center w-[3%]">{college.lor}</TableCell>
+                          <TableCell className="py-4 px-1 text-center w-[3%]">{formatCurrency(college.appFee)}</TableCell>
+                          <TableCell className="py-4 px-1 text-right w-[1%]">
                             <Button
                               onClick={() => addCollegeToApplications(college)}
                               disabled={isAlreadyAdded}
@@ -1427,16 +1516,31 @@ const CollegeApplicationTracker: React.FC = () => {
                 <TableHeader className="bg-slate-200">
                   <TableRow>
                     {[
-                      "College Name", "Size", "Adm Rate",
-                      "Grad Rate", "Reten Rate", "Avg Net Price", "Est Net Price", "Test Scores", "Test Policy",
-                      "Essay Policy", "Supplemental Essays", "Deadlines", "Common App",
-                      "LOR", "App Fee", ""
+                        { name: "College Name", width: "w-[15%]" },
+                        { name: "Size", width: "w-[5%]" },
+                        { name: "Adm Rate", width: "w-[5%]" },
+                        { name: "Grad Rate", width: "w-[5%]" },
+                        { name: "Reten Rate", width: "w-[5%]" },
+                        { name: "Avg Net Price", width: "w-[7%]" },
+                        { name: "Est Net Price", width: "w-[7%]" },
+                        { name: "Test Scores", width: "w-[12%]" },
+                        { name: "Test Policy", width: "w-[5%]" },
+                        { name: "Essay Policy", width: "w-[5%]" },
+                        { name: "Supplemental Essays", width: "w-[12%]" },
+                        { name: "Deadlines", width: "w-[6%]" },
+                        { name: "Common App", width: "w-[4%]" },
+                        { name: "LOR", width: "w-[3%]" },
+                        { name: "App Fee", width: "w-[3%]" },
+                        { name: "", width: "w-[1%]" }
                     ].map((header, index) => (
                       <TableHead 
-                        key={header} 
-                        className={`py-4 ${index === 0 ? 'pl-3 pr-1 text-left' : 'px-1 text-center'} text-s font-medium`}
+                        key={header.name} 
+                        className={cn(
+                          `py-4 ${index === 0 ? 'pl-3 pr-1 text-left' : 'px-1 text-center'} text-sm font-medium`,
+                          header.width
+                        )}
                       >
-                        {header}
+                        {header.name}
                       </TableHead>
                     ))}
                   </TableRow>
@@ -1453,25 +1557,29 @@ const CollegeApplicationTracker: React.FC = () => {
                               {...provided.dragHandleProps}
                               className={cn(
                                 "border-b border-slate-200 bg-white hover:bg-slate-50",
-                                snapshot.isDragging && "opacity-50"
+                                snapshot.isDragging && "bg-slate-50"
                               )}
+                              style={{
+                                ...provided.draggableProps.style,
+                                width: 'calc(100vw - 64px)',
+                              }}
                             >
-                              <TableCell className="py-4 pl-3 pr-1 align-middle [&:has([role=checkbox])]:pr-0">
+                              <TableCell className="py-4 pl-3 pr-1 align-middle [&:has([role=checkbox])]:pr-0 w-[15%]">
                                 <div>
                                   <a 
                                     href={app.instUrl && !app.instUrl.startsWith('http') ? `https://${app.instUrl}` : app.instUrl} 
                                     target="_blank" 
                                     rel="noopener noreferrer"
-                                    className="font-bold text-indigo-800 hover:text-indigo-900 hover:underline"
+                                    className="font-bold text-sm text-indigo-800 hover:text-indigo-900 hover:underline"
                                   >
                                     {app.name}
                                   </a>
-                                  <div className="text-xs text-gray-500">
+                                  <div className="text-[11px] text-gray-500">
                                     {`${app.city}, ${app.state} • ${getControlType(app.control)}`}
                                   </div>
                                 </div>
                               </TableCell>
-                              <TableCell className="py-4 px-1 text-center">
+                              <TableCell className="py-4 px-1 text-center w-[5%]">
                                 {!!editingColleges[app.id] ? (
                                   <Input 
                                     value={editingColleges[app.id]?.undegrSize || ''} 
@@ -1480,7 +1588,7 @@ const CollegeApplicationTracker: React.FC = () => {
                                   />
                                 ) : app.undegrSize}
                               </TableCell>
-                              <TableCell className="py-4 px-1 text-center">
+                              <TableCell className="py-4 px-1 text-center w-[5%]">
                                 {!!editingColleges[app.id] ? (
                                   <Input 
                                     value={editingColleges[app.id]?.admRate || ''}
@@ -1493,7 +1601,7 @@ const CollegeApplicationTracker: React.FC = () => {
                                   />
                                 ) : formatPercentage(app.admRate)}
                               </TableCell>
-                              <TableCell className="py-4 px-1 text-center">
+                              <TableCell className="py-4 px-1 text-center w-[5%]">
                                 {!!editingColleges[app.id] ? (
                                   <Input 
                                     value={editingColleges[app.id]?.gradRate || ''}
@@ -1506,7 +1614,7 @@ const CollegeApplicationTracker: React.FC = () => {
                                   />
                                 ) : formatPercentage(app.gradRate)}
                               </TableCell>
-                              <TableCell className="py-4 px-1 text-center">
+                              <TableCell className="py-4 px-1 text-center w-[5%]">
                                 {!!editingColleges[app.id] ? (
                                   <Input 
                                     value={editingColleges[app.id]?.retRate || ''}
@@ -1519,7 +1627,7 @@ const CollegeApplicationTracker: React.FC = () => {
                                   />
                                 ) : formatPercentage(app.retRate)}
                               </TableCell>
-                              <TableCell className="py-4 px-1 text-center">
+                              <TableCell className="py-4 px-1 text-center w-[7%]">
                                 {!!editingColleges[app.id] ? (
                                   <Input 
                                     value={editingColleges[app.id]?.control === '1' 
@@ -1543,7 +1651,7 @@ const CollegeApplicationTracker: React.FC = () => {
                                   </span>
                                 )}
                               </TableCell>
-                              <TableCell className="py-4 px-1 text-center">
+                              <TableCell className="py-4 px-1 text-center w-[7%]">
                                 {!!editingColleges[app.id] ? (
                                   <Input 
                                     value={getEstimatedNetPrice(editingColleges[app.id], userProfile.familyIncome).replace('$', '')}
@@ -1578,7 +1686,7 @@ const CollegeApplicationTracker: React.FC = () => {
                                   </a>
                                 )}
                               </TableCell>
-                              <TableCell className="py-4 px-1 text-center">
+                              <TableCell className="py-4 px-1 text-center w-[12%]">
                                 <TestScoreRange
                                   min25={parseInt(app.satRead25) + parseInt(app.satMath25)}
                                   max75={parseInt(app.satRead75) + parseInt(app.satMath75)}
@@ -1586,7 +1694,7 @@ const CollegeApplicationTracker: React.FC = () => {
                                   label=""
                                 />
                               </TableCell>
-                              <TableCell className="py-4 px-1 text-center">
+                              <TableCell className="py-4 px-1 text-center w-[5%]">
                                 {!!editingColleges[app.id] ? (
                                   <div className="flex justify-center items-center">
                                     <select
@@ -1609,7 +1717,7 @@ const CollegeApplicationTracker: React.FC = () => {
                                   </div>
                                 )}
                               </TableCell>
-                              <TableCell className="py-4 px-1 text-center">
+                              <TableCell className="py-4 px-1 text-center w-[5%]">
                                 {!!editingColleges[app.id] ? (
                                   <div className="flex justify-center items-center">
                                     <select
@@ -1623,19 +1731,17 @@ const CollegeApplicationTracker: React.FC = () => {
                                   </div>
                                 ) : (
                                   <div className="flex justify-center items-center h-full">
-                                    {app.essayPolicy === "1" && (
-                                      <span className="text-red-500">R</span>
-                                    )}
+                                    {app.essayPolicy}
                                   </div>
                                 )}
                               </TableCell>
-                              <TableCell className="py-4 px-1 text-center w-[350px]">
+                              <TableCell className="py-4 px-1 text-center w-[12%]">
                                 {app.essayPrompts?.map((prompt, promptIndex) => (
                                   <Popover key={promptIndex}>
                                     <PopoverTrigger asChild>
                                       <Button 
                                         variant="outline" 
-                                        className="max-w-[320px] justify-center mb-2 px-2 truncate"
+                                        className="w-full max-w-[320px] justify-center mb-1 px-2 truncate text-sm"
                                         data-popover-trigger={`${app.id}-${promptIndex}`}
                                       >
                                         {prompt.isRequired ? (
@@ -1701,12 +1807,12 @@ const CollegeApplicationTracker: React.FC = () => {
                                 ))}
                                 <button
                                   onClick={() => addEssayPrompt(app.id)}
-                                  className="w-full max-w-[320px] text-gray-500 hover:text-blue-700 transition-colors text-sm mt-2"
+                                  className="max-w-[320px] text-gray-500 hover:text-blue-700 transition-colors text-sm mt-[-6px]"
                                 >
                                   + Add prompt
                                 </button>
                               </TableCell>
-                              <TableCell className="py-4 px-1 text-center">
+                              <TableCell className="py-4 px-1 text-center w-[6%]">
                                 {!!editingColleges[app.id] ? (
                                   <div className="flex flex-col space-y-2">
                                   <Input 
@@ -1754,7 +1860,7 @@ const CollegeApplicationTracker: React.FC = () => {
                                   </div>
                                 )}
                               </TableCell>
-                              <TableCell className="py-4 px-1 text-center">
+                              <TableCell className="py-4 px-1 text-center w-[4%]">
                                 {!!editingColleges[app.id] ? (
                                   <Input 
                                     value={editingColleges[app.id]?.commonApp || ''} 
@@ -1763,7 +1869,7 @@ const CollegeApplicationTracker: React.FC = () => {
                                   />
                                 ) : getCommonAppDisplay(app.commonApp)}
                               </TableCell>
-                              <TableCell className="py-4 px-1 text-center">
+                              <TableCell className="py-4 px-1 text-center w-[3%]">
                                 {!!editingColleges[app.id] ? (
                                   <Input 
                                     type="number" 
@@ -1773,7 +1879,7 @@ const CollegeApplicationTracker: React.FC = () => {
                                   />
                                 ) : app.lor}
                               </TableCell>
-                              <TableCell className="py-4 px-1 text-center">
+                              <TableCell className="py-4 px-1 text-center w-[3%]">
                                 {!!editingColleges[app.id] ? (
                                   <div className="flex items-center justify-center">
                                     <span className="mr-1">$</span>
@@ -1788,7 +1894,7 @@ const CollegeApplicationTracker: React.FC = () => {
                                   <span>{app.fee ? `$${app.fee}` : ''}</span>
                                 )}
                               </TableCell>
-                              <TableCell className="py-4 px-1 text-right">
+                              <TableCell className="py-4 px-1 text-right w-[1%]">
                                 {!!editingColleges[app.id] ? (
                                   <div className="flex justify-end space-x-2">
                                     <Button 
