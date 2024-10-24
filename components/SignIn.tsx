@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 
 export default function SignIn() {
   const [email, setEmail] = useState('');
@@ -67,10 +68,10 @@ export default function SignIn() {
           </button>
           <div className="text-center text-sm text-gray-600 space-y-2">
             <p>
-              Don't have an account? <a href="/signup" className="text-indigo-600 hover:underline">Sign up</a>
+              Don&apos;t have an account? <Link href="/signup" className="text-indigo-600 hover:underline">Sign up</Link>
             </p>
             <p>
-              <a href="/reset-password" className="text-indigo-600 hover:underline">Forgot your password?</a>
+              <Link href="/reset-password" className="text-indigo-600 hover:underline">Forgot your password?</Link>
             </p>
           </div>
         </form>

@@ -1,8 +1,13 @@
 import { db } from './firebase';
-import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, where } from 'firebase/firestore';
-import { CollegeApplication } from '../types/CollegeApplication';
+import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs } from 'firebase/firestore';
 
-export const addApplication = async (userId: string, application: CollegeApplication) => {
+// Remove the import for CollegeApplication and define it inline
+interface CollegeApplication {
+  id: string;
+  // Add other properties as needed
+}
+
+export const addApplication = async (userId: string, application: Omit<CollegeApplication, 'id'>) => {
   const applicationsRef = collection(db, 'users', userId, 'applications');
   await addDoc(applicationsRef, application);
 };

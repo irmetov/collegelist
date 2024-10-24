@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { Menu, ChevronDown, AlertCircle, LogOut, Settings, Pencil, Trash2, X, Check, MoreVertical, Search } from 'lucide-react'
+import React, { useState, useEffect, useCallback } from 'react'
+import { ChevronDown, AlertCircle, LogOut, Settings, Pencil, Trash2, X, Check, MoreVertical, Search } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
@@ -30,14 +30,12 @@ import { useRouter } from "next/router"
 import { signOut } from "firebase/auth"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { doc, setDoc, updateDoc, getDoc, getFirestore, collection } from "firebase/firestore";
+import { doc, setDoc, updateDoc, getDoc, collection } from "firebase/firestore";
 import { useToast } from "@/components/ui/use-toast"
-import { DragDropContext, Droppable, Draggable, DropResult, DraggableProvided, DraggableStateSnapshot, DroppableProvided } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { query, where, getDocs, limit } from 'firebase/firestore';
 import { db, auth } from '../firebase-config';
 import { Badge } from "../components/ui/badge"
-import { cn } from "@/lib/utils"
 import { v4 as uuidv4 } from 'uuid'; // Add this import at the top of your file
 import {
   AlertDialog,
@@ -50,16 +48,8 @@ import {
   AlertDialogTitle,
 } from "../components/ui/alert-dialog"
 import { Slider } from "../components/ui/slider"
-import { Checkbox } from "../components/ui/checkbox"
-import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth"; // Update this import
-
-// Add this near the top of the file, after the imports
-const US_STATES = [
-  'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 
-  'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 
-  'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 
-  'VA', 'WA', 'WV', 'WI', 'WY'
-];
+import { EmailAuthProvider, updatePassword, reauthenticateWithCredential } from "firebase/auth"
+import { cn } from "@/lib/utils"
 
 interface EssayPrompt {
   prompt: string
@@ -135,7 +125,7 @@ interface College {
 interface CollegeApplication extends College {
   id: string;
   essayPrompts: EssayPrompt[];
-  [key: string]: any; // Add this line
+  [key: string]: string | number | boolean | EssayPrompt[] | undefined;
 }
 
 interface UserProfile {
@@ -214,7 +204,7 @@ const customBadgeVariants = {
   "ghost-green": "bg-green-100 text-green-800 hover:bg-green-200",
 };
 
-// Add this function at the top of your component or in a separate utility file
+// Add this helper function at the top of your file
 const getTestPolicyDisplay = (policy: string): string => {
   switch (policy) {
     case '1':
@@ -334,7 +324,7 @@ const CollegeApplicationTracker: React.FC = () => {
     image: '',
     satReading: 0,
     satMath: 0,
-    sat: 0, // Add this line
+    sat: 0,
     gpa: 0,
     act: 0,
     familyIncome: 0,
@@ -342,93 +332,90 @@ const CollegeApplicationTracker: React.FC = () => {
     actMath: 0,
   });
 
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const [applications, setApplications] = useState<CollegeApplication[]>([]);
 
-  const [editingColleges, setEditingColleges] = useState<{ [key: string]: CollegeApplication }>({});
+  const [editingColleges, setEditingColleges] = useState<Record<string, CollegeApplication>>({});
 
-  const [authChecked, setAuthChecked] = useState(false);
-  const [openPopoverId, setOpenPopoverId] = useState<string | null>(null)
-
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState<string>('');
   const [searchResults, setSearchResults] = useState<CollegeSearchResult[]>([]);
 
   const [collegeToRemove, setCollegeToRemove] = useState<string | null>(null);
 
-  const [colleges, setColleges] = useState<College[]>([]);
+  const [showFilters, setShowFilters] = useState<boolean>(false);
 
-  const [showFilters, setShowFilters] = useState(false);
-
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<{
+    state: string;
+    admissionRate: [number, number];
+    graduationRate: [number, number];
+    control: string;
+    testPolicy: string;
+  }>({
     state: '',
     admissionRate: [0, 100],
-    graduationRate: [0, 100], // Add this line
-    control: '', // Add this line
-    testPolicy: '', // Add this line
+    graduationRate: [0, 100],
+    control: '',
+    testPolicy: '',
   });
 
-  const [oldPassword, setOldPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
+  const [oldPassword, setOldPassword] = useState<string>('');
+  const [newPassword, setNewPassword] = useState<string>('');
 
-  const US_STATES = [
-    'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 
-    'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 
-    'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 
-    'VA', 'WA', 'WV', 'WI', 'WY'
+  const [authChecked, setAuthChecked] = useState<boolean>(false);
+
+  // Define the CollegeData type based on the College interface
+  type CollegeData = College;
+
+  // Implement or import the validateInput function
+  const validateInput = (input: string): string => {
+    // Add your validation logic here
+    return input.trim();
+  };
+
+  // Define the handleFilterChange function
+  const handleFilterChange = (field: keyof typeof filters, value: string) => {
+    setFilters(prev => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  // Define the handleSliderChange function
+  const handleSliderChange = (value: number[]) => {
+    if (value.length === 2) {
+      const [start, end] = value;
+      setFilters(prev => ({
+        ...prev,
+        admissionRate: [start, end] as [number, number],
+      }));
+    }
+  };
+
+  // Define the handleGradSliderChange function
+  const handleGradSliderChange = (value: number[]) => {
+    if (value.length === 2) {
+      const [start, end] = value;
+      setFilters(prev => ({
+        ...prev,
+        graduationRate: [start, end] as [number, number],
+      }));
+    }
+  };
+
+  // Define the US_STATES array
+  const US_STATES: string[] = [
+    'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', // Add all US states
+    // ...
   ];
 
-  const [sliderValues, setSliderValues] = useState(filters.admissionRate);
-  const [gradSliderValues, setGradSliderValues] = useState(filters.graduationRate); // Add this line
-
-  const handleFilterChange = useCallback((filterName: string, value: any) => {
-    setFilters(prev => ({ ...prev, [filterName]: value }));
-  }, []);
-
-  const handleSliderChange = useCallback((value: number[]) => {
-    setSliderValues(value);
-  }, []);
-
-  const handleSliderCommit = useCallback((value: number[]) => {
-    handleFilterChange('admissionRate', value);
-  }, [handleFilterChange]);
-
-  const handleGradSliderChange = useCallback((value: number[]) => {
-    setGradSliderValues(value);
-  }, []);
-
-  const handleGradSliderCommit = useCallback((value: number[]) => {
-    handleFilterChange('graduationRate', value);
-  }, [handleFilterChange]);
-
-  useEffect(() => {
-    const loadColleges = async () => {
-      try {
-        const response = await fetch('/api/fetchColleges');
-        if (!response.ok) {
-          throw new Error('Failed to fetch college data');
-        }
-        const data = await response.json();
-        setColleges(data);
-      } catch (error) {
-        console.error('Error loading colleges:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load college data",
-          variant: "destructive",
-        });
-      }
-    };
-    loadColleges();
-  }, []);
-
-  // Move this function to the top of the component
-  const ensureApplicationIds = (apps: any[]): CollegeApplication[] => {
+  // Fix the any type error by specifying a more explicit type
+  const ensureApplicationIds = (apps: Partial<CollegeApplication>[]): CollegeApplication[] => {
     return apps.map(app => ({
       ...app,
       id: app.id || uuidv4(),
-      testPolicy: app.testPolicy, // This is already a string
-    }));
+      testPolicy: app.testPolicy || '',
+    } as CollegeApplication));
   };
 
   useEffect(() => {
@@ -486,97 +473,29 @@ const CollegeApplicationTracker: React.FC = () => {
     console.log("Applications state updated:", applications);
   }, [applications]);
 
-  // Add this useEffect hook to log applications when they change
   useEffect(() => {
     console.log("Applications updated:", applications);
   }, [applications]);
 
-  // Add these state variables at the top with other state declarations
   const [currentPage, setCurrentPage] = useState(1);
   const [totalResults, setTotalResults] = useState(0);
   const resultsPerPage = 10;
 
-  // Add this function to handle page changes
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
   };
 
-  // Update the searchColleges function
-  const searchColleges = async (term: string, appliedFilters: typeof filters) => {
-    try {
-      const collegesRef = collection(db, "colleges");
-      const q = query(collegesRef, limit(50));
-      const querySnapshot = await getDocs(q);
-      
-      const allResults: CollegeSearchResult[] = [];
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        if (meetsFilterCriteria(data, appliedFilters) && 
-            (term === '' || data.name.toLowerCase().includes(term.toLowerCase()))) {
-          allResults.push({
-            name: data.name,
-            city: data.city || '',
-            state: data.state || '',
-            undegrSize: data.undegrSize || '',
-            admRate: data.admRate || '',
-            testPolicy: data.testPolicy || '',
-            essayPolicy: data.essayPolicy || '',
-            control: data.control || '',
-            commonApp: data.commonApp || '',
-            gradRate: data.gradRate || '', // Add this line
-          });
-        }
-      });
-      
-      // Update total results count
-      setTotalResults(allResults.length);
-      
-      // Paginate results
-      const startIndex = (currentPage - 1) * resultsPerPage;
-      const paginatedResults = allResults.slice(startIndex, startIndex + resultsPerPage);
-      
-      setSearchResults(paginatedResults);
-    } catch (error) {
-      console.error("Error searching colleges:", error);
-      toast({
-        title: "Error",
-        description: "Failed to search colleges",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Add this useEffect to reset page when search term or filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, filters]);
-
-  // Add this useEffect to trigger search when filters or searchTerm change
-  useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      searchColleges(searchTerm, filters);
-    }, 300); // 300ms delay to avoid too many searches while typing
-
-    return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm, filters]);
-
-  const meetsFilterCriteria = (college: any, appliedFilters: typeof filters): boolean => {
-    // Filter by state
+  const meetsFilterCriteria = useCallback((college: CollegeData, appliedFilters: typeof filters): boolean => {
     if (appliedFilters.state && college.state !== appliedFilters.state) return false;
     
-    // Filter by control type
     if (appliedFilters.control && college.control !== appliedFilters.control) return false;
     
-    // Filter by test policy
     if (appliedFilters.testPolicy && college.testPolicy !== appliedFilters.testPolicy) return false;
     
-    // Filter by admission rate
     const admRate = college.admRate ? parseFloat(college.admRate) : null;
     
-    // Check if the admission rate filter is at its default values
     const isAdmRateFilterDefault = appliedFilters.admissionRate[0] === 0 && appliedFilters.admissionRate[1] === 100;
     
-    // If admission rate filter is not at default, exclude colleges with null or NaN admission rates
     if (!isAdmRateFilterDefault) {
       if (admRate === null || isNaN(admRate)) {
         return false;
@@ -588,7 +507,6 @@ const CollegeApplicationTracker: React.FC = () => {
       }
     }
     
-    // Filter by graduation rate
     const gradRate = college.gradRate ? parseFloat(college.gradRate) : null;
     const isGradRateFilterDefault = appliedFilters.graduationRate[0] === 0 && appliedFilters.graduationRate[1] === 100;
     
@@ -604,27 +522,80 @@ const CollegeApplicationTracker: React.FC = () => {
     }
     
     return true;
-  };
+  }, []);
 
-  // Add this function inside the component
+  const searchColleges = useCallback(async (term: string, appliedFilters: typeof filters) => {
+    try {
+      const collegesRef = collection(db, "colleges");
+      const q = query(collegesRef, limit(50));
+      const querySnapshot = await getDocs(q);
+      
+      const allResults: CollegeSearchResult[] = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data() as CollegeData;
+        if (meetsFilterCriteria(data, appliedFilters) && 
+            (term === '' || data.name.toLowerCase().includes(term.toLowerCase()))) {
+          allResults.push({
+            name: data.name,
+            city: data.city || '',
+            state: data.state || '',
+            undegrSize: data.undegrSize || '',
+            admRate: data.admRate || '',
+            testPolicy: data.testPolicy || '',
+            essayPolicy: data.essayPolicy || '',
+            control: data.control || '',
+            commonApp: data.commonApp || '',
+            gradRate: data.gradRate || '',
+          });
+        }
+      });
+      
+      setTotalResults(allResults.length);
+      
+      const startIndex = (currentPage - 1) * resultsPerPage;
+      const paginatedResults = allResults.slice(startIndex, startIndex + resultsPerPage);
+      
+      setSearchResults(paginatedResults);
+    } catch (error) {
+      console.error("Error searching colleges:", error);
+      toast({
+        title: "Error",
+        description: "Failed to search colleges",
+        variant: "destructive",
+      });
+    }
+  }, [currentPage, resultsPerPage, toast, meetsFilterCriteria]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filters]);
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      searchColleges(searchTerm, filters);
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm, filters, searchColleges]);
+
   const clearSearch = () => {
     setSearchTerm('');
     setFilters({
       state: '',
       admissionRate: [0, 100],
-      graduationRate: [0, 100], // Add this line
-      control: '', // Add this line
-      testPolicy: '', // Add this line
+      graduationRate: [0, 100],
+      control: '',
+      testPolicy: '',
     });
     setSearchResults([]);
   };
 
   if (!authChecked || isLoading) {
-    return <div>Loading...</div>; // Or a more sophisticated loading spinner
+    return <div>Loading...</div>;
   }
 
   if (!auth.currentUser) {
-    return null; // or redirect to login page
+    return null;
   }
 
   const addEssayPrompt = (applicationId: string) => {
@@ -667,7 +638,6 @@ const CollegeApplicationTracker: React.FC = () => {
     saveApplications(newApplications);
   }
 
-  // Update the removeCollege function
   const removeCollege = (id: string) => {
     setCollegeToRemove(id);
   };
@@ -735,7 +705,7 @@ const CollegeApplicationTracker: React.FC = () => {
     });
   };
 
-  const updateEditingCollege = (id: string, field: keyof CollegeApplication, value: any) => {
+  const updateEditingCollege = (id: string, field: keyof CollegeApplication, value: string | number | boolean) => {
     setEditingColleges(prev => ({
       ...prev,
       [id]: { ...prev[id], [field]: value }
@@ -745,13 +715,11 @@ const CollegeApplicationTracker: React.FC = () => {
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
 
-    // Check if the date is already in MMM-DD format
     const mmmDdRegex = /^[A-Za-z]{3}-\d{2}$/;
     if (mmmDdRegex.test(dateString)) {
       return dateString;
     }
 
-    // Check if the date is in MM/DD/YYYY format
     const mmDdYyyyRegex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
     const match = dateString.match(mmDdYyyyRegex);
 
@@ -763,7 +731,6 @@ const CollegeApplicationTracker: React.FC = () => {
       }
     }
 
-    // If it's not in MM/DD/YYYY format, try parsing as yyyy-MM-dd
     try {
       const date = parse(dateString, 'yyyy-MM-dd', new Date());
       if (isValid(date)) {
@@ -773,11 +740,9 @@ const CollegeApplicationTracker: React.FC = () => {
       console.error("Error parsing date:", error);
     }
 
-    // If all parsing attempts fail, return the original string
     return dateString;
   };
 
-  // Update the logout functionality
   const handleLogout = () => {
     signOut(auth).then(() => {
       setUserProfile({
@@ -786,7 +751,7 @@ const CollegeApplicationTracker: React.FC = () => {
         image: '',
         satReading: 0,
         satMath: 0,
-        sat: 0, // Add this line
+        sat: 0,
         gpa: 0,
         act: 0,
         familyIncome: 0,
@@ -800,9 +765,10 @@ const CollegeApplicationTracker: React.FC = () => {
   }
 
   const updateProfile = (field: keyof UserProfile, value: string | number) => {
+    const sanitizedValue = typeof value === 'string' ? validateInput(value) : value;
     setUserProfile(prev => ({ 
       ...prev, 
-      [field]: field === 'satReading' || field === 'satMath' ? Number(value) : value 
+      [field]: field === 'satReading' || field === 'satMath' ? Number(sanitizedValue) : sanitizedValue 
     }));
   };
 
@@ -821,7 +787,6 @@ const CollegeApplicationTracker: React.FC = () => {
     try {
       const userDocRef = doc(db, "users", auth.currentUser.uid);
       
-      // Calculate total SAT score
       const satReading = parseInt(userProfile.satReading.toString(), 10) || 0;
       const satMath = parseInt(userProfile.satMath.toString(), 10) || 0;
       const totalSAT = satReading + satMath;
@@ -842,22 +807,18 @@ const CollegeApplicationTracker: React.FC = () => {
 
       await updateDoc(userDocRef, updatedProfile);
       
-      // Update password if a new one is provided
       if (newPassword) {
         if (!oldPassword) {
           throw new Error("Old password is required to change password");
         }
 
-        // Create a credential with the old password
         const credential = EmailAuthProvider.credential(
           auth.currentUser.email!,
           oldPassword
         );
 
-        // Reauthenticate the user
         await reauthenticateWithCredential(auth.currentUser, credential);
 
-        // If reauthentication is successful, update the password
         await updatePassword(auth.currentUser, newPassword);
       }
 
@@ -874,8 +835,8 @@ const CollegeApplicationTracker: React.FC = () => {
         actMath: Number(updatedProfile.actMath),
       }));
 
-      setOldPassword(''); // Clear the old password field
-      setNewPassword(''); // Clear the new password field
+      setOldPassword('');
+      setNewPassword('');
 
       toast({
         title: "Success",
@@ -908,7 +869,7 @@ const CollegeApplicationTracker: React.FC = () => {
       await updateDoc(userDocRef, {
         applications: newApplications
       });
-      setApplications(newApplications); // Update local state
+      setApplications(newApplications);
       toast({
         title: "Success",
         description: "Applications saved successfully",
@@ -917,17 +878,12 @@ const CollegeApplicationTracker: React.FC = () => {
       console.error("Error saving applications:", error);
       toast({
         title: "Error",
-        description: "Failed to save applications",
+        description: error instanceof Error ? error.message : "Failed to save applications",
         variant: "destructive",
       });
     }
   };
 
-  const togglePopover = (id: string) => {
-    setOpenPopoverId(prevId => prevId === id ? null : id)
-  }
-
-  // Modify the onDragEnd function
   const onDragEnd = (result: DropResult) => {
     const { source, destination } = result;
 
@@ -943,20 +899,12 @@ const CollegeApplicationTracker: React.FC = () => {
     saveApplications(items);
   };
 
-  // Add this function inside the CollegeApplicationTrackerComponent, before the return statement
   const saveAndCloseEssayPrompt = (appId: string, promptIndex: number) => {
-    // Here you can add any additional save logic if needed
-    // For now, we'll just close the popover since changes are saved automatically
     const popoverTrigger = document.querySelector(`[data-popover-trigger="${appId}-${promptIndex}"]`);
     if (popoverTrigger instanceof HTMLElement) {
-      popoverTrigger.click(); // This will close the popover
+      popoverTrigger.click();
     }
   };
-
-  // Add this function to filter applications based on the search term
-  const filteredApplications = applications.filter(app =>
-    app.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   const addCollegeToApplications = async (college: CollegeSearchResult) => {
     if (!auth.currentUser) {
@@ -980,7 +928,6 @@ const CollegeApplicationTracker: React.FC = () => {
     }
 
     try {
-      // Fetch the full college data from Firestore
       const collegesRef = collection(db, "colleges");
       const q = query(collegesRef, where("name", "==", college.name), limit(1));
       const querySnapshot = await getDocs(q);
@@ -1000,7 +947,6 @@ const CollegeApplicationTracker: React.FC = () => {
 
       const userDocRef = doc(db, "users", auth.currentUser.uid);
       
-      // Get the current applications array from Firestore
       const userDoc = await getDoc(userDocRef);
       if (!userDoc.exists()) {
         throw new Error("User document not found");
@@ -1009,15 +955,12 @@ const CollegeApplicationTracker: React.FC = () => {
       const userData = userDoc.data();
       const currentApplications = userData.applications || [];
       
-      // Add the new application to the array
       const updatedApplications = [...currentApplications, newApplication];
       
-      // Update Firestore document
       await updateDoc(userDocRef, {
         applications: updatedApplications
       });
 
-      // Update local state
       setApplications(updatedApplications);
 
       toast({
@@ -1050,8 +993,13 @@ const CollegeApplicationTracker: React.FC = () => {
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu className="h-6 w-6" />
+              <Button
+                aria-label="Open menu"
+                role="button"
+                variant="ghost"
+                size="icon"
+              >
+                <MoreVertical className="h-6 w-6" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
@@ -1331,25 +1279,22 @@ const CollegeApplicationTracker: React.FC = () => {
                         min={0}
                         max={100}
                         step={1}
-                        value={sliderValues}
-                        onValueChange={(value) => {
-                          handleSliderChange(value);
-                          handleSliderCommit(value);
-                        }}
+                        value={filters.admissionRate}
+                        onValueChange={handleSliderChange}
                         className="relative"
                       />
                       <div className="relative">
                         <span 
                           className="absolute text-sm" 
-                          style={{ left: `${sliderValues[0]}%`, transform: 'translateX(-50%)' }}
+                          style={{ left: `${filters.admissionRate[0]}%`, transform: 'translateX(-50%)' }}
                         >
-                          {sliderValues[0]}%
+                          {filters.admissionRate[0]}%
                         </span>
                         <span 
                           className="absolute text-sm" 
-                          style={{ left: `${sliderValues[1]}%`, transform: 'translateX(-50%)' }}
+                          style={{ left: `${filters.admissionRate[1]}%`, transform: 'translateX(-50%)' }}
                         >
-                          {sliderValues[1]}%
+                          {filters.admissionRate[1]}%
                         </span>
                       </div>
                     </div>
@@ -1361,25 +1306,22 @@ const CollegeApplicationTracker: React.FC = () => {
                         min={0}
                         max={100}
                         step={1}
-                        value={gradSliderValues}
-                        onValueChange={(value) => {
-                          handleGradSliderChange(value);
-                          handleGradSliderCommit(value);
-                        }}
+                        value={filters.graduationRate}
+                        onValueChange={handleGradSliderChange}
                         className="relative"
                       />
                       <div className="relative">
                         <span 
                           className="absolute text-sm" 
-                          style={{ left: `${gradSliderValues[0]}%`, transform: 'translateX(-50%)' }}
+                          style={{ left: `${filters.graduationRate[0]}%`, transform: 'translateX(-50%)' }}
                         >
-                          {gradSliderValues[0]}%
+                          {filters.graduationRate[0]}%
                         </span>
                         <span 
                           className="absolute text-sm" 
-                          style={{ left: `${gradSliderValues[1]}%`, transform: 'translateX(-50%)' }}
+                          style={{ left: `${filters.graduationRate[1]}%`, transform: 'translateX(-50%)' }}
                         >
-                          {gradSliderValues[1]}%
+                          {filters.graduationRate[1]}%
                         </span>
                       </div>
                     </div>
@@ -1509,7 +1451,10 @@ const CollegeApplicationTracker: React.FC = () => {
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
-                              className="border-b border-slate-200 bg-white hover:bg-slate-50"
+                              className={cn(
+                                "border-b border-slate-200 bg-white hover:bg-slate-50",
+                                snapshot.isDragging && "opacity-50"
+                              )}
                             >
                               <TableCell className="py-4 pl-3 pr-1 align-middle [&:has([role=checkbox])]:pr-0">
                                 <div>
@@ -1690,7 +1635,7 @@ const CollegeApplicationTracker: React.FC = () => {
                                     <PopoverTrigger asChild>
                                       <Button 
                                         variant="outline" 
-                                        className="w-full max-w-[320px] justify-center mb-2 px-2 truncate"
+                                        className="max-w-[320px] justify-center mb-2 px-2 truncate"
                                         data-popover-trigger={`${app.id}-${promptIndex}`}
                                       >
                                         {prompt.isRequired ? (

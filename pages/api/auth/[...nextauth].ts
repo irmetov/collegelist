@@ -1,9 +1,25 @@
-import NextAuth from "next-auth"
+import NextAuth, { DefaultSession } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { compare } from 'bcryptjs'
 
 // This should be replaced with your actual user storage/database
 import { users } from './signup'
+
+// Extend the built-in session types
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string
+    } & DefaultSession["user"]
+  }
+
+  interface User {
+    id: string
+    email: string
+    name?: string | null
+    username?: string
+  }
+}
 
 if (!process.env.NEXTAUTH_SECRET) {
   throw new Error("Please provide process.env.NEXTAUTH_SECRET")
@@ -34,7 +50,13 @@ export default NextAuth({
           return null
         }
 
-        return { id: user.id.toString(), email: user.email, name: user.username }
+        // Return a user object that matches the User interface
+        return {
+          id: user.id.toString(),
+          email: user.email,
+          name: user.username,
+          username: user.username
+        }
       }
     })
   ],

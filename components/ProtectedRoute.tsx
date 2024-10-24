@@ -2,8 +2,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 
-export function ProtectedRoute(WrappedComponent: React.ComponentType) {
-  return function ProtectedRouteWrapper(props: any) {
+export function ProtectedRoute<P extends object>(WrappedComponent: React.ComponentType<P>) {
+  return function ProtectedRouteWrapper(props: P) {
     const { user, loading } = useAuth();
     const router = useRouter();
 

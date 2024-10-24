@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { updateProfile, updatePassword, User } from 'firebase/auth';
+import { updateProfile, updatePassword } from 'firebase/auth';
 
 export default function UserProfile() {
   const { user } = useAuth();
@@ -21,6 +21,7 @@ export default function UserProfile() {
       }
     } catch (error) {
       setError('Failed to update profile');
+      console.error('Error updating profile:', error);
     }
   };
 
@@ -37,6 +38,7 @@ export default function UserProfile() {
       }
     } catch (error) {
       setError('Failed to change password');
+      console.error('Error changing password:', error);
     }
   };
 

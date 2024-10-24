@@ -10,7 +10,7 @@ interface SliderProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 
 }
 
 const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
-  ({ className, min, max, step = 1, value, onValueChange, ...props }, ref) => {
+  ({ className, min, max, step = 1, value, onValueChange }) => {
     const [localValue, setLocalValue] = React.useState(value);
     const [isDragging, setIsDragging] = React.useState<number | null>(null);
     const sliderRef = React.useRef<HTMLDivElement>(null);
@@ -24,32 +24,32 @@ const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
       setIsDragging(index);
     };
 
-    const handleMouseUp = () => {
-      setIsDragging(null);
-    };
-
-    const handleMouseMove = (e: MouseEvent) => {
-      if (isDragging !== null && sliderRef.current) {
-        const rect = sliderRef.current.getBoundingClientRect();
-        const percentage = (e.clientX - rect.left) / rect.width;
-        let newValue = Math.round((percentage * (max - min) + min) / step) * step;
-        newValue = Math.max(min, Math.min(max, newValue));
-
-        const updatedValue = [...localValue];
-        updatedValue[isDragging] = newValue;
-
-        if (isDragging === 0 && newValue > updatedValue[1]) {
-          updatedValue[1] = newValue;
-        } else if (isDragging === 1 && newValue < updatedValue[0]) {
-          updatedValue[0] = newValue;
-        }
-
-        setLocalValue(updatedValue);
-        onValueChange(updatedValue);
-      }
-    };
-
     React.useEffect(() => {
+      const handleMouseUp = () => {
+        setIsDragging(null);
+      };
+
+      const handleMouseMove = (e: MouseEvent) => {
+        if (isDragging !== null && sliderRef.current) {
+          const rect = sliderRef.current.getBoundingClientRect();
+          const percentage = (e.clientX - rect.left) / rect.width;
+          let newValue = Math.round((percentage * (max - min) + min) / step) * step;
+          newValue = Math.max(min, Math.min(max, newValue));
+
+          const updatedValue = [...localValue];
+          updatedValue[isDragging] = newValue;
+
+          if (isDragging === 0 && newValue > updatedValue[1]) {
+            updatedValue[1] = newValue;
+          } else if (isDragging === 1 && newValue < updatedValue[0]) {
+            updatedValue[0] = newValue;
+          }
+
+          setLocalValue(updatedValue);
+          onValueChange(updatedValue);
+        }
+      };
+
       if (isDragging !== null) {
         window.addEventListener('mousemove', handleMouseMove);
         window.addEventListener('mouseup', handleMouseUp);
@@ -58,7 +58,7 @@ const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
         window.removeEventListener('mousemove', handleMouseMove);
         window.removeEventListener('mouseup', handleMouseUp);
       };
-    }, [isDragging]);
+    }, [isDragging, localValue, max, min, onValueChange, step]);
 
     const percentage1 = ((localValue[0] - min) / (max - min)) * 100;
     const percentage2 = ((localValue[1] - min) / (max - min)) * 100;

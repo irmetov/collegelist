@@ -3,6 +3,7 @@ import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 
 export default function SignUpForm() {
   const [name, setName] = useState('');
@@ -93,7 +94,7 @@ export default function SignUpForm() {
             Sign up
           </button>
           <p className="text-center text-sm text-gray-600">
-            Already have an account? <a href="/signin" className="text-indigo-600 hover:underline">Sign in</a>
+            Already have an account? <Link href="/signin" className="text-indigo-600 hover:underline">Sign in</Link>
           </p>
         </form>
       </div>

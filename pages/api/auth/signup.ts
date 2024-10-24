@@ -1,8 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { hash } from 'bcryptjs'
 
+interface User {
+  id: number;
+  username: string;
+  email: string;
+  password: string;
+}
+
 // This is a placeholder. In a real app, you'd use a database.
-let users: any[] = []
+const users: User[] = []
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {

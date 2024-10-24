@@ -1,11 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
+  output: 'export',  // Enable static exports
   images: {
-    unoptimized: true,
+    unoptimized: true
   },
-  basePath: process.env.NODE_ENV === 'production' ? '/collegelist' : '',
-  assetPrefix: process.env.NODE_ENV === 'production' ? '/collegelist/' : '',
 }
 
 module.exports = nextConfig
