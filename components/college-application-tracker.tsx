@@ -225,15 +225,15 @@ const customBadgeVariants = {
 const getTestPolicyDisplay = (policy: string): string => {
   switch (policy) {
     case '1':
-      return 'Required';
+      return 'Requi';
     case '2':
-      return 'Recommended';
+      return 'Recom';
     case '3':
-      return 'Not Concidered';
+      return 'Not Conc';
     case '4':
       return 'N/A';
     case '5':
-      return 'Considered';
+      return 'Cons';
     default:
       return 'N/A';
   }
@@ -451,9 +451,62 @@ const CollegeApplicationTracker: React.FC = () => {
   };
 
   // Define the US_STATES array
-  const US_STATES: string[] = [
-    'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', // Add all US states
-    // ...
+  const US_STATES = [
+    { code: 'AL', name: 'Alabama' },
+    { code: 'AK', name: 'Alaska' },
+    { code: 'AZ', name: 'Arizona' },
+    { code: 'AR', name: 'Arkansas' },
+    { code: 'CA', name: 'California' },
+    { code: 'CO', name: 'Colorado' },
+    { code: 'CT', name: 'Connecticut' },
+    { code: 'DE', name: 'Delaware' },
+    { code: 'FL', name: 'Florida' },
+    { code: 'GA', name: 'Georgia' },
+    { code: 'HI', name: 'Hawaii' },
+    { code: 'ID', name: 'Idaho' },
+    { code: 'IL', name: 'Illinois' },
+    { code: 'IN', name: 'Indiana' },
+    { code: 'IA', name: 'Iowa' },
+    { code: 'KS', name: 'Kansas' },
+    { code: 'KY', name: 'Kentucky' },
+    { code: 'LA', name: 'Louisiana' },
+    { code: 'ME', name: 'Maine' },
+    { code: 'MD', name: 'Maryland' },
+    { code: 'MA', name: 'Massachusetts' },
+    { code: 'MI', name: 'Michigan' },
+    { code: 'MN', name: 'Minnesota' },
+    { code: 'MS', name: 'Mississippi' },
+    { code: 'MO', name: 'Missouri' },
+    { code: 'MT', name: 'Montana' },
+    { code: 'NE', name: 'Nebraska' },
+    { code: 'NV', name: 'Nevada' },
+    { code: 'NH', name: 'New Hampshire' },
+    { code: 'NJ', name: 'New Jersey' },
+    { code: 'NM', name: 'New Mexico' },
+    { code: 'NY', name: 'New York' },
+    { code: 'NC', name: 'North Carolina' },
+    { code: 'ND', name: 'North Dakota' },
+    { code: 'OH', name: 'Ohio' },
+    { code: 'OK', name: 'Oklahoma' },
+    { code: 'OR', name: 'Oregon' },
+    { code: 'PA', name: 'Pennsylvania' },
+    { code: 'RI', name: 'Rhode Island' },
+    { code: 'SC', name: 'South Carolina' },
+    { code: 'SD', name: 'South Dakota' },
+    { code: 'TN', name: 'Tennessee' },
+    { code: 'TX', name: 'Texas' },
+    { code: 'UT', name: 'Utah' },
+    { code: 'VT', name: 'Vermont' },
+    { code: 'VA', name: 'Virginia' },
+    { code: 'WA', name: 'Washington' },
+    { code: 'WV', name: 'West Virginia' },
+    { code: 'WI', name: 'Wisconsin' },
+    { code: 'WY', name: 'Wyoming' },
+    { code: 'DC', name: 'District of Columbia' },
+    { code: 'PR', name: 'Puerto Rico' },
+    { code: 'VI', name: 'Virgin Islands' },
+    { code: 'GU', name: 'Guam' },
+    { code: 'MP', name: 'Northern Mariana Islands' },
   ];
 
   // Fix the any type error by specifying a more explicit type
@@ -1079,7 +1132,7 @@ const CollegeApplicationTracker: React.FC = () => {
 
       <main className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
-          <div className="px-4 py-5 sm:px-6 flex items-center justify-between">
+          <div className="px-4 py-5 sm:px-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-0 sm:justify-between">
             <div className="flex items-center space-x-4">
               <Avatar className="w-16 h-16">
                 <AvatarImage src={userProfile.image} alt={userProfile.username} />
@@ -1093,33 +1146,33 @@ const CollegeApplicationTracker: React.FC = () => {
                 {userProfile.username || 'User'}
               </h3>
             </div>
-            <div className="flex items-center space-x-8 text-sm text-gray-500">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:space-x-8 text-sm text-gray-500 w-full sm:w-auto">
               <span><strong>GPA:</strong> {userProfile.gpa}</span>
               <span><strong>SAT:</strong> {Number(userProfile.satReading) + Number(userProfile.satMath)} (R: {userProfile.satReading}, M: {userProfile.satMath})</span>
               <span><strong>ACT:</strong> {userProfile.act}</span>
             </div>
             <Dialog>
               <DialogTrigger asChild>
-                <Button variant="primary">Edit Profile</Button>
+                <Button variant="primary" className="w-full sm:w-auto">Edit Profile</Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[550px]">
                 <DialogHeader>
                   <DialogTitle>Edit Profile</DialogTitle>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="username" className="text-right">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                    <Label htmlFor="username" className="sm:text-right">
                       Name
                     </Label>
                     <Input
                       id="username"
                       value={userProfile.username}
                       onChange={(e) => updateProfile('username', e.target.value)}
-                      className="col-span-3"
+                      className="sm:col-span-3"
                     />
                   </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="email" className="text-right">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                    <Label htmlFor="email" className="sm:text-right">
                       Email
                     </Label>
                     <Input
@@ -1127,11 +1180,11 @@ const CollegeApplicationTracker: React.FC = () => {
                       type="email"
                       value={userProfile.email}
                       onChange={(e) => updateProfile('email', e.target.value)}
-                      className="col-span-3"
+                      className="sm:col-span-3"
                     />
                   </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="image" className="text-right">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                    <Label htmlFor="image" className="sm:text-right">
                       Profile Image
                     </Label>
                     <Input
@@ -1148,11 +1201,11 @@ const CollegeApplicationTracker: React.FC = () => {
                           reader.readAsDataURL(file);
                         }
                       }}
-                      className="col-span-3"
+                      className="sm:col-span-3"
                     />
                   </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="satReading" className="text-right">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                    <Label htmlFor="satReading" className="sm:text-right">
                       SAT Reading
                     </Label>
                     <Input
@@ -1160,11 +1213,11 @@ const CollegeApplicationTracker: React.FC = () => {
                       type="number"
                       value={userProfile.satReading}
                       onChange={(e) => updateProfile('satReading', parseInt(e.target.value))}
-                      className="col-span-3"
+                      className="sm:col-span-3"
                     />
                   </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="satMath" className="text-right">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                    <Label htmlFor="satMath" className="sm:text-right">
                       SAT Math
                     </Label>
                     <Input
@@ -1172,11 +1225,11 @@ const CollegeApplicationTracker: React.FC = () => {
                       type="number"
                       value={userProfile.satMath}
                       onChange={(e) => updateProfile('satMath', parseInt(e.target.value))}
-                      className="col-span-3"
+                      className="sm:col-span-3"
                     />
                   </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="act" className="text-right">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                    <Label htmlFor="act" className="sm:text-right">
                       ACT Score
                     </Label>
                     <Input
@@ -1184,11 +1237,11 @@ const CollegeApplicationTracker: React.FC = () => {
                       type="number"
                       value={userProfile.act}
                       onChange={(e) => updateProfile('act', parseInt(e.target.value))}
-                      className="col-span-3"
+                      className="sm:col-span-3"
                     />
                   </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="gpa" className="text-right">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                    <Label htmlFor="gpa" className="sm:text-right">
                       GPA
                     </Label>
                     <Input
@@ -1197,11 +1250,11 @@ const CollegeApplicationTracker: React.FC = () => {
                       step="0.01"
                       value={userProfile.gpa}
                       onChange={(e) => updateProfile('gpa', parseFloat(e.target.value))}
-                      className="col-span-3"
+                      className="sm:col-span-3"
                     />
                   </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="familyIncome" className="text-right">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                    <Label htmlFor="familyIncome" className="sm:text-right">
                       Family Income
                     </Label>
                     <Input
@@ -1209,11 +1262,11 @@ const CollegeApplicationTracker: React.FC = () => {
                       type="number"
                       value={userProfile.familyIncome}
                       onChange={(e) => updateProfile('familyIncome', parseInt(e.target.value))}
-                      className="col-span-3"
+                      className="sm:col-span-3"
                     />
                   </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="oldPassword" className="text-right">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                    <Label htmlFor="oldPassword" className="sm:text-right">
                       Current Password
                     </Label>
                     <Input
@@ -1222,11 +1275,11 @@ const CollegeApplicationTracker: React.FC = () => {
                       value={oldPassword}
                       onChange={(e) => setOldPassword(e.target.value)}
                       placeholder="Enter current password"
-                      className="col-span-3"
+                      className="sm:col-span-3"
                     />
                   </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="newPassword" className="text-right">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                    <Label htmlFor="newPassword" className="sm:text-right">
                       New Password
                     </Label>
                     <Input
@@ -1235,7 +1288,7 @@ const CollegeApplicationTracker: React.FC = () => {
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       placeholder="Enter new password"
-                      className="col-span-3"
+                      className="sm:col-span-3"
                     />
                   </div>
                 </div>
@@ -1286,7 +1339,7 @@ const CollegeApplicationTracker: React.FC = () => {
             {/* Filter panel */}
             {showFilters && (
               <div className="mt-4 bg-gray-50 p-4 rounded-md">
-                <div className="grid grid-cols-5 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                   <div>
                     <Label htmlFor="state">State</Label>
                     <select
@@ -1297,8 +1350,8 @@ const CollegeApplicationTracker: React.FC = () => {
                     >
                       <option value="">All States</option>
                       {US_STATES.map((state) => (
-                        <option key={state} value={state}>
-                          {state}
+                        <option key={state.code} value={state.code}>
+                          {state.code} - {state.name}
                         </option>
                       ))}
                     </select>
@@ -1333,7 +1386,7 @@ const CollegeApplicationTracker: React.FC = () => {
                       <option value="5">Considered</option>
                     </select>
                   </div>
-                  <div className="px-6">
+                  <div className="px-0 md:px-6">
                     <Label>Admission Rate (%)</Label>
                     <div className="pt-2 pb-2">
                       <Slider
@@ -1360,7 +1413,7 @@ const CollegeApplicationTracker: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="px-6">
+                  <div className="px-0 md:px-6">
                     <Label>Graduation Rate (%)</Label>
                     <div className="pt-2 pb-2">
                       <Slider
@@ -1398,22 +1451,22 @@ const CollegeApplicationTracker: React.FC = () => {
                   <TableHeader className="bg-slate-200">
                     <TableRow>
                       {[
-                        { name: "College Name", width: "w-[15%]" },
+                        { name: "College Name", width: "w-[20%]" },
                         { name: "Size", width: "w-[5%]" },
                         { name: "Adm Rate", width: "w-[5%]" },
                         { name: "Grad Rate", width: "w-[5%]" },
                         { name: "Reten Rate", width: "w-[5%]" },
-                        { name: "Avg Net Price", width: "w-[7%]" },
-                        { name: "Est Net Price", width: "w-[7%]" },
+                        { name: "Avg Net Price", width: "w-[10%]" },
+                        { name: "Est Net Price", width: "w-[10%]" },
                         { name: "Test Scores", width: "w-[12%]" },
                         { name: "Test Policy", width: "w-[5%]" },
                         { name: "Essay Policy", width: "w-[5%]" },
-                        { name: "Supplemental Essays", width: "w-[12%]" },
+                        { name: "Supplemental Essays", width: "w-[10%]" },
                         { name: "Deadlines", width: "w-[6%]" },
-                        { name: "Common App", width: "w-[4%]" },
-                        { name: "LOR", width: "w-[3%]" },
+                        { name: "Common App", width: "w-[3%]" },
+                        { name: "LOR", width: "w-[2%]" },
                         { name: "App Fee", width: "w-[3%]" },
-                        { name: "", width: "w-[1%]" }
+                        { name: "", width: "w-[2%]" }
                       ].map((header, index) => (
                         <TableHead 
                           key={header.name} 
@@ -1432,7 +1485,7 @@ const CollegeApplicationTracker: React.FC = () => {
                       const isAlreadyAdded = applications.some(app => app.name.toLowerCase() === college.name.toLowerCase());
                       return (
                         <TableRow key={college.name}>
-                          <TableCell className="py-4 pl-3 pr-1 align-middle [&:has([role=checkbox])]:pr-0 w-[15%]">
+                          <TableCell className="py-4 pl-3 pr-1 align-middle [&:has([role=checkbox])]:pr-0 w-[20%]">
                             <div>
                               <span className="font-bold text-indigo-800">{college.name}</span>
                               <div className="text-sm text-gray-500">
@@ -1444,17 +1497,17 @@ const CollegeApplicationTracker: React.FC = () => {
                           <TableCell className="py-4 px-1 text-center w-[5%]">{formatPercentage(college.admRate)}</TableCell>
                           <TableCell className="py-4 px-1 text-center w-[5%]">{formatPercentage(college.gradRate)}</TableCell>
                           <TableCell className="py-4 px-1 text-center w-[5%]">{formatPercentage(college.retentionRate)}</TableCell>
-                          <TableCell className="py-4 px-1 text-center w-[7%]">{formatCurrency(college.AvgNetPricPub)}</TableCell>
-                          <TableCell className="py-4 px-1 text-center w-[7%]">{formatCurrency(college.estNetPrice)}</TableCell>
+                          <TableCell className="py-4 px-1 text-center w-[10%]">{formatCurrency(college.AvgNetPricPub)}</TableCell>
+                          <TableCell className="py-4 px-1 text-center w-[10%]">{formatCurrency(college.estNetPrice)}</TableCell>
                           <TableCell className="py-4 px-1 text-center w-[12%]">{getTestScoresDisplay(college)}</TableCell>
                           <TableCell className="py-4 px-1 text-center w-[5%]">{getTestPolicyDisplay(college.testPolicy)}</TableCell>
                           <TableCell className="py-4 px-1 text-center w-[5%]">{college.essayPolicy}</TableCell>
-                          <TableCell className="py-4 px-1 text-center w-[12%]">{college.supplementalEssays}</TableCell>
+                          <TableCell className="py-4 px-1 text-center w-[10%]">{college.supplementalEssays}</TableCell>
                           <TableCell className="py-4 px-1 text-center w-[6%]">{college.deadlines}</TableCell>
-                          <TableCell className="py-4 px-1 text-center w-[4%]">{getCommonAppDisplay(college.commonApp)}</TableCell>
-                          <TableCell className="py-4 px-1 text-center w-[3%]">{college.lor}</TableCell>
+                          <TableCell className="py-4 px-1 text-center w-[3%]">{getCommonAppDisplay(college.commonApp)}</TableCell>
+                          <TableCell className="py-4 px-1 text-center w-[2%]">{college.lor}</TableCell>
                           <TableCell className="py-4 px-1 text-center w-[3%]">{formatCurrency(college.appFee)}</TableCell>
-                          <TableCell className="py-4 px-1 text-right w-[1%]">
+                          <TableCell className="py-4 px-1 text-right w-[2%]">
                             <Button
                               onClick={() => addCollegeToApplications(college)}
                               disabled={isAlreadyAdded}
@@ -1516,22 +1569,22 @@ const CollegeApplicationTracker: React.FC = () => {
                 <TableHeader className="bg-slate-200">
                   <TableRow>
                     {[
-                        { name: "College Name", width: "w-[15%]" },
+                        { name: "College Name", width: "w-[20%]" },
                         { name: "Size", width: "w-[5%]" },
                         { name: "Adm Rate", width: "w-[5%]" },
                         { name: "Grad Rate", width: "w-[5%]" },
                         { name: "Reten Rate", width: "w-[5%]" },
-                        { name: "Avg Net Price", width: "w-[7%]" },
-                        { name: "Est Net Price", width: "w-[7%]" },
+                        { name: "Avg Net Price", width: "w-[10%]" },
+                        { name: "Est Net Price", width: "w-[10%]" },
                         { name: "Test Scores", width: "w-[12%]" },
                         { name: "Test Policy", width: "w-[5%]" },
                         { name: "Essay Policy", width: "w-[5%]" },
-                        { name: "Supplemental Essays", width: "w-[12%]" },
+                        { name: "Supplemental Essays", width: "w-[10%]" },
                         { name: "Deadlines", width: "w-[6%]" },
-                        { name: "Common App", width: "w-[4%]" },
-                        { name: "LOR", width: "w-[3%]" },
+                        { name: "Common App", width: "w-[3%]" },
+                        { name: "LOR", width: "w-[2%]" },
                         { name: "App Fee", width: "w-[3%]" },
-                        { name: "", width: "w-[1%]" }
+                        { name: "", width: "w-[2%]" }
                     ].map((header, index) => (
                       <TableHead 
                         key={header.name} 
@@ -1564,7 +1617,7 @@ const CollegeApplicationTracker: React.FC = () => {
                                 width: 'calc(100vw - 64px)',
                               }}
                             >
-                              <TableCell className="py-4 pl-3 pr-1 align-middle [&:has([role=checkbox])]:pr-0 w-[15%]">
+                              <TableCell className="py-4 pl-3 pr-1 align-middle [&:has([role=checkbox])]:pr-0 w-[20%]">
                                 <div>
                                   <a 
                                     href={app.instUrl && !app.instUrl.startsWith('http') ? `https://${app.instUrl}` : app.instUrl} 
@@ -1627,7 +1680,7 @@ const CollegeApplicationTracker: React.FC = () => {
                                   />
                                 ) : formatPercentage(app.retRate)}
                               </TableCell>
-                              <TableCell className="py-4 px-1 text-center w-[7%]">
+                              <TableCell className="py-4 px-1 text-center w-[10%]">
                                 {!!editingColleges[app.id] ? (
                                   <Input 
                                     value={editingColleges[app.id]?.control === '1' 
@@ -1651,7 +1704,7 @@ const CollegeApplicationTracker: React.FC = () => {
                                   </span>
                                 )}
                               </TableCell>
-                              <TableCell className="py-4 px-1 text-center w-[7%]">
+                              <TableCell className="py-4 px-1 text-center w-[10%]">
                                 {!!editingColleges[app.id] ? (
                                   <Input 
                                     value={getEstimatedNetPrice(editingColleges[app.id], userProfile.familyIncome).replace('$', '')}
@@ -1706,7 +1759,7 @@ const CollegeApplicationTracker: React.FC = () => {
                                       <option value="2">Recommended</option>
                                       <option value="3">Neither required nor recommended</option>
                                       <option value="4">N/A</option>
-                                      <option value="5">Considered but not required</option>
+                                      <option value="5">Considered</option>
                                     </select>
                                   </div>
                                 ) : (
@@ -1735,7 +1788,7 @@ const CollegeApplicationTracker: React.FC = () => {
                                   </div>
                                 )}
                               </TableCell>
-                              <TableCell className="py-4 px-1 text-center w-[12%]">
+                              <TableCell className="py-4 px-1 text-center w-[10%]">
                                 {app.essayPrompts?.map((prompt, promptIndex) => (
                                   <Popover key={promptIndex}>
                                     <PopoverTrigger asChild>
@@ -1860,7 +1913,7 @@ const CollegeApplicationTracker: React.FC = () => {
                                   </div>
                                 )}
                               </TableCell>
-                              <TableCell className="py-4 px-1 text-center w-[4%]">
+                              <TableCell className="py-4 px-1 text-center w-[3%]">
                                 {!!editingColleges[app.id] ? (
                                   <Input 
                                     value={editingColleges[app.id]?.commonApp || ''} 
@@ -1869,7 +1922,7 @@ const CollegeApplicationTracker: React.FC = () => {
                                   />
                                 ) : getCommonAppDisplay(app.commonApp)}
                               </TableCell>
-                              <TableCell className="py-4 px-1 text-center w-[3%]">
+                              <TableCell className="py-4 px-1 text-center w-[2%]">
                                 {!!editingColleges[app.id] ? (
                                   <Input 
                                     type="number" 
@@ -1894,7 +1947,7 @@ const CollegeApplicationTracker: React.FC = () => {
                                   <span>{app.fee ? `$${app.fee}` : ''}</span>
                                 )}
                               </TableCell>
-                              <TableCell className="py-4 px-1 text-right w-[1%]">
+                              <TableCell className="py-4 px-1 text-right w-[2%]">
                                 {!!editingColleges[app.id] ? (
                                   <div className="flex justify-end space-x-2">
                                     <Button 

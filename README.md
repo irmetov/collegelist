@@ -35,4 +35,18 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
-git push -u origin main
+
+Push To GitHub
+
+/ git status
+This will show you if there are any files that have been modified but not yet committed.
+
+Stage the changes: If there are changes that need to be committed, stage them with:
+/ git add .
+
+Commit the changes: Once the changes are staged, commit them with a message:
+/ git commit -m "Describe the changes you made"
+
+Push the changes: After committing the changes, push them to GitHub:
+/ git push origin main
+
